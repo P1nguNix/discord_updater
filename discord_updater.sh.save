@@ -1,12 +1,11 @@
 #!/bin/bash
+download_path="/home/pingu/Téléchargements/" # Définition du dossier source de l'archive
+archive="$(find $download_path -name "discord-*tar\.gz" | head -n 1)" # Récupération de la première archive qui convient avec le paterne spécifié
 if [ "$EUID" -ne 0 ] # Vérifie que l'utilisateur est en sudo pour outrepasser l'écriture de certains répertoires
 then
 	echo "Ce script doit être exécuté avec les privilèges sudo."
 	exit 1
 fi
-real_user=$SUDO_USER # $SUDO_USER est une variable d'environnement stockant le nom d'utilisateur lançant le script
-download_path=$(sudo -u "$real_user" xdg-user-dir DOWNLOAD) # Définition du dossier source de l'archive, xdg-user-dir DOWNLOAD permet de récuperer de dossier de Téléchargements de l'utilisateur
-archive="$(find $download_path -name "discord-*tar\.gz" | head -n 1)" # Récupération de la première archive qui convient avec le paterne spécifié
 check_error() { # Fonction appelée plusieurs fois dans le programme et permet de pouvoir débug en cas de soucis
 	if [ $? -ne 0  ]
 	then
