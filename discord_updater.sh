@@ -4,9 +4,7 @@ then
 	echo "Ce script doit être exécuté avec les privilèges sudo."
 	exit 1
 fi
-real_user=$SUDO_USER # $SUDO_USER est une variable d'environnement stockant le nom d'utilisateur lançant le script
-download_path=$(sudo -u "$real_user" xdg-user-dir DOWNLOAD) # Définition du dossier source de l'archive, xdg-user-dir DOWNLOAD permet de récuperer de dossier de Téléchargements de l'utilisateur
-archive="$(find $download_path -name "discord-*tar\.gz" | head -n 1)" # Récupération de la première archive qui convient avec le paterne spécifié
+
 check_error() { # Fonction appelée plusieurs fois dans le programme et permet de pouvoir débug en cas de soucis
 	if [ $? -ne 0  ]
 	then
@@ -14,8 +12,19 @@ check_error() { # Fonction appelée plusieurs fois dans le programme et permet d
 		exit 1
 	fi
 }
-echo -e "Chemin de l'archive : $download_path\nArchive trouvée : $archive"
+
+real_user=$SUDO_USER # $SUDO_USER est une variable d'environnement stockant le nom d'utilisateur lançant le script
+download_path=$(sudo -u "$real_user" xdg-user-dir DOWNLOAD) # Définition du dossier source de l'archive, xdg-user-dir DOWNLOAD permet de récuperer de dossier de Téléchargements de l'utilisateur
+echo -e "Chemin de l'archive : $download_path"
 cd $download_path
+
+archive=$(find $download_path -name "discord-*tar\.gz" | head -n 1) # Récupération de la première archive qui convient avec le paterne spécifié
+if [[ -n $archive ]]
+then
+	echo -e "Archive trouvée : $archive"
+else
+	check_error $LINENO "Aucune archive trouvée"
+fi
 
 echo "Décompression de l'archive $archive"
 tar -xzf $archive
@@ -31,7 +40,7 @@ mv $download_path/Discord/* discord
 check_error $LINENO "Erreur lors du déplacement de la nouvelle version"
 
 echo "Rétablissement des liens symboliques"
-ln -s -f /opt/discord/Discord /usr/bin/discord
+ln -sf /opt/discord/Discord /usr/bin/discord
 check_error $LINENO "Erreur lors du rétablissement des liens symboliques"
 
 echo "Suppression de l'archive et du dossier temporaire"
